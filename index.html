@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ORSEC | Piloto SIDPOL</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{--azul:#082b4c;--azul2:#0b416f;--cian:#18bde3;--bg:#eef4f8;--card:#fff;--muted:#60758a}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:#12263a}
+header{background:linear-gradient(120deg,var(--azul),var(--azul2));color:white;padding:26px 5vw}
+header small{color:#aeeeff;font-weight:700;letter-spacing:.08em}h1{margin:6px 0 3px;font-size:30px}
+.wrap{max-width:1180px;margin:auto;padding:24px}.alert{background:#fff5d9;border-left:5px solid #e2a900;padding:13px 16px;border-radius:8px;margin-bottom:18px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card{background:var(--card);border-radius:14px;padding:18px;box-shadow:0 5px 20px #14324d12}
+.kpi b{font-size:30px;color:var(--azul2)}.kpi span{display:block;color:var(--muted);font-size:13px;margin-top:5px}
+.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;margin-top:16px}.full{margin-top:16px}
+h2{font-size:18px;margin:0 0 12px;color:var(--azul)}table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:10px;border-bottom:1px solid #e6edf3;text-align:left}th{background:#f4f8fb}
+.badge{display:inline-block;background:#dff7fd;color:#05667c;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:700}
+footer{text-align:center;color:var(--muted);padding:24px;font-size:12px}
+@media(max-width:800px){.kpis,.grid{grid-template-columns:1fr 1fr}}@media(max-width:520px){.kpis,.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><small>LABORATORIO PARALELO · NO PRODUCCIÓN</small><h1>ORSEC Seguridad Ciudadana — Piloto SIDPOL</h1>
+<div>Homologación experimental · La Libertad · Enero–Agosto 2026</div></header>
+<div class="wrap">
+<div class="alert"><b>Protección de la plataforma oficial:</b> este piloto es independiente. No modifica datos.json, ORSEC Administración ni las plataformas en producción.</div>
+<div class="kpis">
+<div class="card kpi"><b id="orsec">—</b><span>Hurtos ORSEC actual</span></div>
+<div class="card kpi"><b id="sidpol">—</b><span>Hurtos SIDPOL homologado</span></div>
+<div class="card kpi"><b id="dif">—</b><span>Diferencia</span></div>
+<div class="card kpi"><b>8</b><span>Modalidades homologadas</span></div>
+</div>
+<div class="grid">
+<div class="card"><h2>Composición por modalidad</h2><canvas id="modalidades"></canvas></div>
+<div class="card"><h2>Detalle de modalidades</h2><table><thead><tr><th>Modalidad</th><th>Denuncias</th></tr></thead><tbody id="tablaMod"></tbody></table></div>
+</div>
+<div class="grid">
+<div class="card"><h2>Evolución mensual</h2><canvas id="mensual"></canvas></div>
+<div class="card"><h2>Distribución provincial</h2><canvas id="prov"></canvas></div>
+</div>
+<div class="card full"><h2>Metodología</h2><span class="badge">ID_DGC único</span>
+<p>Fuente experimental: Base oficial SIDPOL – Macrorregión Norte. Criterio temporal: período de registro. El total se deduplica por ID_DGC; por ello, la suma simple de modalidades puede ser superior al total de denuncias únicas.</p></div>
+</div><footer>Centro de Inteligencia ORSEC · Laboratorio de homologación ORSEC–SIDPOL</footer>
+<script>
+fetch('data/hurtos_sidpol.json').then(r=>r.json()).then(d=>{
+ const h=d.hurtos, fmt=n=>n.toLocaleString('es-PE');
+ orsec.textContent=fmt(h.orsec_actual); sidpol.textContent=fmt(h.sidpol_homologado); dif.textContent='+'+fmt(h.diferencia);
+ tablaMod.innerHTML=h.modalidades.map(x=>`<tr><td>${x.nombre}</td><td><b>${fmt(x.denuncias)}</b></td></tr>`).join('');
+ new Chart(document.getElementById('modalidades'),{type:'bar',data:{labels:h.modalidades.map(x=>x.nombre),datasets:[{label:'Denuncias únicas asociadas',data:h.modalidades.map(x=>x.denuncias)}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
+ new Chart(document.getElementById('mensual'),{type:'line',data:{labels:h.mensual.map(x=>x.mes),datasets:[{label:'Hurtos SIDPOL',data:h.mensual.map(x=>x.denuncias),tension:.25}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+ new Chart(document.getElementById('prov'),{type:'bar',data:{labels:h.provincias.map(x=>x.provincia),datasets:[{label:'Hurtos SIDPOL',data:h.provincias.map(x=>x.denuncias)}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{maxRotation:70,minRotation:45}},y:{beginAtZero:true}}}});
+}).catch(()=>document.body.insertAdjacentHTML('beforeend','<p style="padding:20px">Abra este piloto mediante un servidor local o GitHub/Vercel para cargar el archivo JSON.</p>'));
+</script></body></html>
